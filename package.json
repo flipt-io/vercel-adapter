@@ -1,0 +1,38 @@
+{
+  "name": "vercel-flipt-sdk",
+  "version": "0.1.0",
+  "description": "Vercel Flags adapter for Flipt",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@flipt-io/flipt-client": "^0.13.0",
+    "flags": "^3.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "msw": "^2.2.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "peerDependencies": {
+    "flags": "^3.2.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "vercel",
+    "flags",
+    "flipt",
+    "feature-flags",
+    "feature-toggles"
+  ],
+  "author": "",
+  "license": "MIT"
+}
