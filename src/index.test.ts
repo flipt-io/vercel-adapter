@@ -1,52 +1,118 @@
 import { expect, it, describe } from 'vitest';
 import { setupServer } from 'msw/node';
 import { afterAll, afterEach, beforeAll } from 'vitest';
-import { HttpResponse, http } from 'msw';
-import { createFliptAdapter } from '.';
+import { http, HttpResponse } from 'msw';
+import { AdapterResponse, createFliptAdapter, __resetClientForTesting, getProviderData } from '.';
+
+const defaultFlags = [
+  {
+    key: "new-feature",
+    name: "new-feature",
+    description: "",
+    enabled: true,
+    type: "BOOLEAN_FLAG_TYPE",
+    createdAt: "2024-03-25T20:44:58.462Z",
+    updatedAt: "2024-03-25T20:44:58.462Z",
+    rules: [],
+    rollouts: []
+  },
+  {
+    key: "user-theme",
+    name: "user-theme",
+    description: "",
+    enabled: true,
+    type: "VARIANT_FLAG_TYPE",
+    createdAt: "2024-03-25T20:44:58.462Z",
+    updatedAt: "2024-03-25T20:44:58.462Z",
+    rules: [
+      {
+        id: "test-rule-1",
+        segments: [],
+        rank: 1,
+        segmentOperator: "OR_SEGMENT_OPERATOR",
+        distributions: [
+          {
+            id: "dist-1",
+            ruleId: "test-rule-1",
+            variantId: "variant-1",
+            variantKey: "dark",
+            variantAttachment: '{"style":"modern"}',
+            rollout: 100
+          }
+        ]
+      }
+    ],
+    rollouts: [],
+    defaultVariant: {
+      id: "variant-1",
+      key: "dark",
+      attachment: '{"style":"modern"}'
+    }
+  }
+];
+
+const testFlags = [
+  {
+    key: "test-feature",
+    name: "test-feature",
+    description: "",
+    enabled: true,
+    type: "BOOLEAN_FLAG_TYPE",
+    createdAt: "2024-03-25T20:44:58.462Z",
+    updatedAt: "2024-03-25T20:44:58.462Z",
+    rules: [],
+    rollouts: []
+  }
+];
 
 const restHandlers = [
-  http.post('http://localhost:8080/evaluate/v1/boolean', () => {
+  http.get('http://localhost:8080/internal/v1/evaluation/snapshot/namespace/default', ({ request }) => {
     return HttpResponse.json({
-      flagKey: 'new-feature',
-      entityId: 'user-123',
-      enabled: true,
-      reason: 'MATCH_EVALUATION',
-      requestDurationMillis: 0.123,
-      timestamp: '2024-03-25T20:44:58.462Z',
+      namespace: {
+        key: "default"
+      },
+      flags: defaultFlags,
+      digest: "test-digest-123"
     });
   }),
-  http.post('http://localhost:8080/evaluate/v1/variant', () => {
+  http.get('http://localhost:8080/internal/v1/evaluation/snapshot/namespace/test', ({ request }) => {
     return HttpResponse.json({
-      flagKey: 'user-theme',
-      entityId: 'user-123',
-      match: true,
-      reason: 'MATCH_EVALUATION',
-      variantKey: 'dark',
-      variantAttachment: '{"style":"modern"}',
-      requestDurationMillis: 0.123,
-      timestamp: '2024-03-25T20:44:58.462Z',
+      namespace: {
+        key: "test"
+      },
+      flags: testFlags,
+      digest: "test-digest-456"
     });
-  }),
+  })
 ];
 
 const server = setupServer(...restHandlers);
 
+let adapter: AdapterResponse | null = null;
+
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
 afterAll(() => server.close());
-afterEach(() => server.resetHandlers());
 
-describe('createFliptAdapter', () => {
-  const adapter = createFliptAdapter({
+beforeEach(() => {
+  adapter = createFliptAdapter({
     url: 'http://localhost:8080',
     namespace: 'default',
     authentication: {
       clientToken: 'test-token',
     },
   });
+});
 
+afterEach(() => {
+  server.resetHandlers();
+  adapter = null;
+  __resetClientForTesting();
+});
+
+describe('createFliptAdapter', () => {
   describe('boolean flags', () => {
     it('should evaluate boolean flag', async () => {
-      const booleanAdapter = adapter.boolean((result) => result.enabled);
+      const booleanAdapter = adapter!.boolean((result) => result.enabled);
 
       const result = await booleanAdapter.decide({
         key: 'new-feature',
@@ -63,7 +129,7 @@ describe('createFliptAdapter', () => {
     });
 
     it('should throw error when user is missing', async () => {
-      const booleanAdapter = adapter.boolean((result) => result.enabled);
+      const booleanAdapter = adapter!.boolean((result) => result.enabled);
 
       await expect(
         booleanAdapter.decide({
@@ -75,7 +141,7 @@ describe('createFliptAdapter', () => {
     });
 
     it('should throw error when user has no id', async () => {
-      const booleanAdapter = adapter.boolean((result) => result.enabled);
+      const booleanAdapter = adapter!.boolean((result) => result.enabled);
 
       await expect(
         booleanAdapter.decide({
@@ -92,7 +158,7 @@ describe('createFliptAdapter', () => {
 
   describe('variant flags', () => {
     it('should evaluate variant flag', async () => {
-      const variantAdapter = adapter.variant((result) => ({
+      const variantAdapter = adapter!.variant((result) => ({
         theme: result.variantKey,
         style: result.attachment ? JSON.parse(result.attachment).style : undefined,
       }));
@@ -115,7 +181,7 @@ describe('createFliptAdapter', () => {
     });
 
     it('should throw error when user is missing', async () => {
-      const variantAdapter = adapter.variant((result) => result.variantKey);
+      const variantAdapter = adapter!.variant((result) => result.variantKey);
 
       await expect(
         variantAdapter.decide({
@@ -127,21 +193,63 @@ describe('createFliptAdapter', () => {
     });
 
     it('should handle missing variant attachment', async () => {
+      // Override the handler before creating the adapter
       server.use(
-        http.post('http://localhost:8080/evaluate/v1/variant', () => {
+        http.get('http://localhost:8080/internal/v1/evaluation/snapshot/namespace/default', () => {
           return HttpResponse.json({
-            flagKey: 'user-theme',
-            entityId: 'user-123',
-            match: true,
-            reason: 'MATCH_EVALUATION',
-            variantKey: 'dark',
-            requestDurationMillis: 0.123,
-            timestamp: '2024-03-25T20:44:58.462Z',
+            namespace: {
+              key: "default"
+            },
+            flags: [
+              {
+                key: "user-theme",
+                name: "user-theme",
+                description: "",
+                enabled: true,
+                type: "VARIANT_FLAG_TYPE",
+                createdAt: "2024-03-25T20:44:58.462Z",
+                updatedAt: "2024-03-25T20:44:58.462Z",
+                rules: [
+                  {
+                    id: "test-rule-1",
+                    segments: [],
+                    rank: 1,
+                    segmentOperator: "OR_SEGMENT_OPERATOR",
+                    distributions: [
+                      {
+                        id: "dist-1",
+                        ruleId: "test-rule-1",
+                        variantId: "variant-1",
+                        variantKey: "dark",
+                        variantAttachment: "",
+                        rollout: 100
+                      }
+                    ]
+                  }
+                ],
+                rollouts: [],
+                defaultVariant: {
+                  id: "variant-1",
+                  key: "dark",
+                  attachment: ""
+                }
+              }
+            ],
+            digest: "test-digest-789"
           });
         })
       );
 
-      const variantAdapter = adapter.variant((result) => ({
+      // Create adapter after setting up the mock
+      adapter = createFliptAdapter({
+        url: 'http://localhost:8080',
+        namespace: 'default',
+        authentication: {
+          clientToken: 'test-token',
+        },
+      });
+
+      const variantAdapter = adapter!.variant((result) => ({
         theme: result.variantKey,
         style: result.attachment ? JSON.parse(result.attachment).style : 'default',
       }));
@@ -191,10 +299,84 @@ describe('createFliptAdapter', () => {
     });
 
     it('should reuse existing client', async () => {
-      const client1 = await adapter.initialize();
-      const client2 = await adapter.initialize();
+      const client1 = await adapter!.initialize();
+      const client2 = await adapter!.initialize();
 
       expect(client1).toBe(client2);
+    });
+  });
+
+  describe('getProviderData', () => {
+    it('should return flag definitions', async () => {
+      const data = await getProviderData({
+        url: 'http://localhost:8080',
+        namespace: 'default',
+        authentication: {
+          clientToken: 'test-token',
+        },
+      });
+
+      expect(data.definitions).toEqual({
+        'new-feature': {
+          origin: 'http://localhost:8080/flags/new-feature',
+          options: [
+            { value: true, label: 'Enabled' },
+            { value: false, label: 'Disabled' },
+          ],
+        },
+        'user-theme': {
+          origin: 'http://localhost:8080/flags/user-theme',
+          options: [
+            { value: true, label: 'Enabled' },
+            { value: false, label: 'Disabled' },
+          ],
+        },
+      });
+    });
+
+    it('should return hints when client token is missing', async () => {
+      const data = await getProviderData({
+        url: 'http://localhost:8080',
+      });
+
+      expect(data.hints).toContainEqual({
+        key: 'flipt/missing-client-token',
+        text: 'Missing Flipt Client Token',
+      });
+    });
+
+    it('should return hints when url is missing', async () => {
+      const data = await getProviderData({
+        authentication: {
+          clientToken: 'test-token',
+        },
+      });
+
+      expect(data.hints).toContainEqual({
+        key: 'flipt/missing-url',
+        text: 'Missing Flipt URL',
+      });
+    });
+
+    it('should return error hint when request fails', async () => {
+      server.use(
+        http.get('http://localhost:8080/internal/v1/evaluation/snapshot/namespace/default', () => {
+          return new HttpResponse(null, { status: 500 });
+        })
+      );
+
+      const data = await getProviderData({
+        url: 'http://localhost:8080',
+        namespace: 'default',
+        authentication: {
+          clientToken: 'test-token',
+        },
+      });
+
+      expect(data.hints).toContainEqual({
+        key: 'flipt/failed-to-fetch',
+        text: expect.stringContaining('Failed to fetch Flipt flags'),
+      });
     });
   });
 }); 

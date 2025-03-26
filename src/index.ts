@@ -1,5 +1,12 @@
 import type { Adapter } from 'flags';
 import { FliptEvaluationClient } from '@flipt-io/flipt-client';
+import type { FlagDefinitionsType, JsonValue, ProviderData } from 'flags';
+
+interface FliptFlag {
+  key: string;
+  enabled: boolean;
+  type: 'BOOLEAN_FLAG_TYPE' | 'VARIANT_FLAG_TYPE';
+}
 
 export interface FliptConfig {
   url?: string;
@@ -19,7 +26,7 @@ type AdapterFunction<O> = <T>(
   opts?: { exposureLogging?: boolean }
 ) => Adapter<T, FliptUser>;
 
-type AdapterResponse = {
+export type AdapterResponse = {
   boolean: AdapterFunction<{ enabled: boolean }>;
   variant: AdapterFunction<{ variantKey: string; attachment?: string }>;
   initialize: () => Promise<FliptEvaluationClient>;
@@ -122,4 +129,60 @@ function transformContext(user: FliptUser): Record<string, string> {
   return context;
 }
 
-export const fliptAdapter = createFliptAdapter(); 
+export const fliptAdapter = createFliptAdapter();
+
+// For testing purposes only
+export function __resetClientForTesting() {
+  client = null;
+}
+
+export async function getProviderData(options?: FliptConfig): Promise<ProviderData> {
+  const hints: Exclude<ProviderData['hints'], undefined> = [];
+
+  if (!options?.authentication?.clientToken && !process.env.FLIPT_CLIENT_TOKEN) {
+    hints.push({
+      key: 'flipt/missing-client-token',
+      text: 'Missing Flipt Client Token',
+    });
+  }
+
+  if (!options?.url && !process.env.FLIPT_URL) {
+    hints.push({
+      key: 'flipt/missing-url',
+      text: 'Missing Flipt URL',
+    });
+  }
+
+  if (hints.length > 0) {
+    return { definitions: {}, hints };
+  }
+
+  try {
+    const client = await initialize(options);
+    const flags = (client.listFlags()) as FliptFlag[];
+
+    return {
+      definitions: flags.reduce<FlagDefinitionsType>((acc, flag) => {
+        acc[flag.key] = {
+          origin: `${options?.url ?? process.env.FLIPT_URL}/flags/${flag.key}`,
+          options: [
+              { value: true, label: 'Enabled' },
+              { value: false, label: 'Disabled' }
+            ],
+        };
+        return acc;
+      }, {}),
+      hints,
+    };
+  } catch (e) {
+    return {
+      definitions: {},
+      hints: [
+        {
+          key: 'flipt/failed-to-fetch',
+          text: `Failed to fetch Flipt flags: ${(e as Error).message}`,
+        },
+      ],
+    };
+  }
+} 
