@@ -1,6 +1,6 @@
 {
-  "name": "vercel-flipt-sdk",
-  "version": "0.1.0",
+  "name": "@flipt-io/vercel-adapter",
+  "version": "0.0.1",
   "description": "Vercel Flags adapter for Flipt",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

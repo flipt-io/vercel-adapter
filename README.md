@@ -1,11 +1,11 @@
-# Vercel Flipt SDK
+# Vercel Flags Adapter for Flipt
 
 A Vercel Flags adapter for [Flipt](https://flipt.io).
 
 ## Installation
 
 ```bash
-npm install vercel-flipt-sdk
+npm install @flipt-io/vercel-adapter
 ```
 
 ## Usage
@@ -13,7 +13,7 @@ npm install vercel-flipt-sdk
 ### Basic Setup
 
 ```typescript
-import { createFliptAdapter } from 'vercel-flipt-sdk';
+import { createFliptAdapter } from '@flipt-io/vercel-adapter';
 
 const adapter = createFliptAdapter({
   url: process.env.FLIPT_URL,
@@ -28,7 +28,7 @@ const adapter = createFliptAdapter({
 
 ```typescript
 import { flag, dedupe } from 'flags/next';
-import { createFliptAdapter } from 'vercel-flipt-sdk';
+import { createFliptAdapter } from '@flipt-io/vercel-adapter';
 
 const adapter = createFliptAdapter({
   url: process.env.FLIPT_URL,
