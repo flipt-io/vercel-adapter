@@ -1,6 +1,6 @@
 import { FliptEvaluationClient } from '@flipt-io/flipt-client';
 
-import type { Adapter, FlagDefinitionsType, JsonValue, ProviderData } from 'flags';
+import type { Adapter, FlagDefinitionsType, ProviderData } from 'flags';
 
 interface FliptFlag {
   key: string;
@@ -23,7 +23,7 @@ type FliptUser = {
 
 type AdapterFunction<O> = <T>(
   getValue: (obj: O) => T,
-  opts?: { exposureLogging?: boolean },
+  opts?: object | undefined,
 ) => Adapter<T, FliptUser>;
 
 export type AdapterResponse = {
@@ -60,10 +60,10 @@ const isFliptUser = (user: unknown): user is FliptUser => {
 async function predecide(user?: FliptUser): Promise<FliptUser> {
   if (!isFliptUser(user)) {
     throw new Error(
-      'vercel-flipt-sdk: Invalid or missing user from identify. See https://flags-sdk.dev/concepts/identify',
+      'vercel-flipt-adapter: Invalid or missing user from identify. See https://flags-sdk.dev/concepts/identify',
     );
   }
-  return user;
+  return await Promise.resolve(user);
 }
 
 export function createFliptAdapter(options?: FliptConfig): AdapterResponse {
@@ -73,7 +73,7 @@ export function createFliptAdapter(options?: FliptConfig): AdapterResponse {
 
   function boolean<T>(
     getValue: (result: { enabled: boolean }) => T,
-    opts?: { exposureLogging?: boolean },
+    _opts?: object | undefined,
   ): Adapter<T, FliptUser> {
     return {
       decide: async ({ key, entities }: { key: string; entities?: FliptUser }) => {
@@ -87,7 +87,7 @@ export function createFliptAdapter(options?: FliptConfig): AdapterResponse {
 
   function variant<T>(
     getValue: (result: { variantKey: string; attachment?: string }) => T,
-    opts?: { exposureLogging?: boolean },
+    _opts?: object | undefined,
   ): Adapter<T, FliptUser> {
     return {
       decide: async ({ key, entities }: { key: string; entities?: FliptUser }) => {
@@ -124,7 +124,7 @@ function transformContext(user: FliptUser): Record<string, string> {
 export const fliptAdapter = createFliptAdapter();
 
 // For testing purposes only
-export function __resetClientForTesting() {
+export function __resetClientForTesting(): void {
   client = null;
 }
 

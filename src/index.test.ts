@@ -143,7 +143,7 @@ describe('createFliptAdapter', () => {
           headers: {} as any,
           cookies: {} as any,
         }),
-      ).rejects.toThrow('vercel-flipt-sdk: Invalid or missing user from identify');
+      ).rejects.toThrow('vercel-flipt-adapter: Invalid or missing user from identify');
     });
 
     it('should throw error when user has no id', async () => {
@@ -158,7 +158,7 @@ describe('createFliptAdapter', () => {
           headers: {} as any,
           cookies: {} as any,
         }),
-      ).rejects.toThrow('vercel-flipt-sdk: Invalid or missing user from identify');
+      ).rejects.toThrow('vercel-flipt-adapter: Invalid or missing user from identify');
     });
   });
 
@@ -195,7 +195,7 @@ describe('createFliptAdapter', () => {
           headers: {} as any,
           cookies: {} as any,
         }),
-      ).rejects.toThrow('vercel-flipt-sdk: Invalid or missing user from identify');
+      ).rejects.toThrow('vercel-flipt-adapter: Invalid or missing user from identify');
     });
 
     it('should handle missing variant attachment', async () => {
