@@ -1,0 +1,9 @@
+dist
+node_modules
+coverage
+.git
+*.js
+!.eslintrc.js
+!tsup.config.js 
+vitest.config.ts
+*.test.*

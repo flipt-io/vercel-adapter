@@ -1,89 +1,95 @@
-import { expect, it, describe } from 'vitest';
-import { setupServer } from 'msw/node';
-import { afterAll, afterEach, beforeAll } from 'vitest';
 import { http, HttpResponse } from 'msw';
+import { setupServer } from 'msw/node';
+import { expect, it, describe, afterAll, afterEach, beforeAll } from 'vitest';
+
 import { AdapterResponse, createFliptAdapter, __resetClientForTesting, getProviderData } from '.';
 
 const defaultFlags = [
   {
-    key: "new-feature",
-    name: "new-feature",
-    description: "",
+    key: 'new-feature',
+    name: 'new-feature',
+    description: '',
     enabled: true,
-    type: "BOOLEAN_FLAG_TYPE",
-    createdAt: "2024-03-25T20:44:58.462Z",
-    updatedAt: "2024-03-25T20:44:58.462Z",
+    type: 'BOOLEAN_FLAG_TYPE',
+    createdAt: '2024-03-25T20:44:58.462Z',
+    updatedAt: '2024-03-25T20:44:58.462Z',
     rules: [],
-    rollouts: []
+    rollouts: [],
   },
   {
-    key: "user-theme",
-    name: "user-theme",
-    description: "",
+    key: 'user-theme',
+    name: 'user-theme',
+    description: '',
     enabled: true,
-    type: "VARIANT_FLAG_TYPE",
-    createdAt: "2024-03-25T20:44:58.462Z",
-    updatedAt: "2024-03-25T20:44:58.462Z",
+    type: 'VARIANT_FLAG_TYPE',
+    createdAt: '2024-03-25T20:44:58.462Z',
+    updatedAt: '2024-03-25T20:44:58.462Z',
     rules: [
       {
-        id: "test-rule-1",
+        id: 'test-rule-1',
         segments: [],
         rank: 1,
-        segmentOperator: "OR_SEGMENT_OPERATOR",
+        segmentOperator: 'OR_SEGMENT_OPERATOR',
         distributions: [
           {
-            id: "dist-1",
-            ruleId: "test-rule-1",
-            variantId: "variant-1",
-            variantKey: "dark",
+            id: 'dist-1',
+            ruleId: 'test-rule-1',
+            variantId: 'variant-1',
+            variantKey: 'dark',
             variantAttachment: '{"style":"modern"}',
-            rollout: 100
-          }
-        ]
-      }
+            rollout: 100,
+          },
+        ],
+      },
     ],
     rollouts: [],
     defaultVariant: {
-      id: "variant-1",
-      key: "dark",
-      attachment: '{"style":"modern"}'
-    }
-  }
+      id: 'variant-1',
+      key: 'dark',
+      attachment: '{"style":"modern"}',
+    },
+  },
 ];
 
 const testFlags = [
   {
-    key: "test-feature",
-    name: "test-feature",
-    description: "",
+    key: 'test-feature',
+    name: 'test-feature',
+    description: '',
     enabled: true,
-    type: "BOOLEAN_FLAG_TYPE",
-    createdAt: "2024-03-25T20:44:58.462Z",
-    updatedAt: "2024-03-25T20:44:58.462Z",
+    type: 'BOOLEAN_FLAG_TYPE',
+    createdAt: '2024-03-25T20:44:58.462Z',
+    updatedAt: '2024-03-25T20:44:58.462Z',
     rules: [],
-    rollouts: []
-  }
+    rollouts: [],
+  },
 ];
 
 const restHandlers = [
-  http.get('http://localhost:8080/internal/v1/evaluation/snapshot/namespace/default', ({ request }) => {
-    return HttpResponse.json({
-      namespace: {
-        key: "default"
-      },
-      flags: defaultFlags,
-      digest: "test-digest-123"
-    });
-  }),
-  http.get('http://localhost:8080/internal/v1/evaluation/snapshot/namespace/test', ({ request }) => {
-    return HttpResponse.json({
-      namespace: {
-        key: "test"
-      },
-      flags: testFlags,
-      digest: "test-digest-456"
-    });
-  })
+  http.get(
+    'http://localhost:8080/internal/v1/evaluation/snapshot/namespace/default',
+    ({ request }) => {
+      return HttpResponse.json({
+        namespace: {
+          key: 'default',
+        },
+        flags: defaultFlags,
+        digest: 'test-digest-123',
+      });
+    },
+  ),
+  http.get(
+    'http://localhost:8080/internal/v1/evaluation/snapshot/namespace/test',
+    ({ request }) => {
+      return HttpResponse.json({
+        namespace: {
+          key: 'test',
+        },
+        flags: testFlags,
+        digest: 'test-digest-456',
+      });
+    },
+  ),
 ];
 
 const server = setupServer(...restHandlers);
@@ -122,7 +128,7 @@ describe('createFliptAdapter', () => {
           country: 'US',
         },
         headers: {} as any,
-        cookies: {} as any
+        cookies: {} as any,
       });
 
       expect(result).toBe(true);
@@ -135,8 +141,8 @@ describe('createFliptAdapter', () => {
         booleanAdapter.decide({
           key: 'new-feature',
           headers: {} as any,
-          cookies: {} as any
-        })
+          cookies: {} as any,
+        }),
       ).rejects.toThrow('vercel-flipt-sdk: Invalid or missing user from identify');
     });
 
@@ -150,8 +156,8 @@ describe('createFliptAdapter', () => {
             email: 'user@example.com',
           } as any,
           headers: {} as any,
-          cookies: {} as any
-        })
+          cookies: {} as any,
+        }),
       ).rejects.toThrow('vercel-flipt-sdk: Invalid or missing user from identify');
     });
   });
@@ -171,7 +177,7 @@ describe('createFliptAdapter', () => {
           country: 'US',
         },
         headers: {} as any,
-        cookies: {} as any
+        cookies: {} as any,
       });
 
       expect(result).toEqual({
@@ -187,8 +193,8 @@ describe('createFliptAdapter', () => {
         variantAdapter.decide({
           key: 'user-theme',
           headers: {} as any,
-          cookies: {} as any
-        })
+          cookies: {} as any,
+        }),
       ).rejects.toThrow('vercel-flipt-sdk: Invalid or missing user from identify');
     });
 
@@ -198,46 +204,46 @@ describe('createFliptAdapter', () => {
         http.get('http://localhost:8080/internal/v1/evaluation/snapshot/namespace/default', () => {
           return HttpResponse.json({
             namespace: {
-              key: "default"
+              key: 'default',
             },
             flags: [
               {
-                key: "user-theme",
-                name: "user-theme",
-                description: "",
+                key: 'user-theme',
+                name: 'user-theme',
+                description: '',
                 enabled: true,
-                type: "VARIANT_FLAG_TYPE",
-                createdAt: "2024-03-25T20:44:58.462Z",
-                updatedAt: "2024-03-25T20:44:58.462Z",
+                type: 'VARIANT_FLAG_TYPE',
+                createdAt: '2024-03-25T20:44:58.462Z',
+                updatedAt: '2024-03-25T20:44:58.462Z',
                 rules: [
                   {
-                    id: "test-rule-1",
+                    id: 'test-rule-1',
                     segments: [],
                     rank: 1,
-                    segmentOperator: "OR_SEGMENT_OPERATOR",
+                    segmentOperator: 'OR_SEGMENT_OPERATOR',
                     distributions: [
                       {
-                        id: "dist-1",
-                        ruleId: "test-rule-1",
-                        variantId: "variant-1",
-                        variantKey: "dark",
-                        variantAttachment: "",
-                        rollout: 100
-                      }
-                    ]
-                  }
+                        id: 'dist-1',
+                        ruleId: 'test-rule-1',
+                        variantId: 'variant-1',
+                        variantKey: 'dark',
+                        variantAttachment: '',
+                        rollout: 100,
+                      },
+                    ],
+                  },
                 ],
                 rollouts: [],
                 defaultVariant: {
-                  id: "variant-1",
-                  key: "dark",
-                  attachment: ""
-                }
-              }
+                  id: 'variant-1',
+                  key: 'dark',
+                  attachment: '',
+                },
+              },
             ],
-            digest: "test-digest-789"
+            digest: 'test-digest-789',
           });
-        })
+        }),
       );
 
       // Create adapter after setting up the mock
@@ -249,7 +255,7 @@ describe('createFliptAdapter', () => {
         },
       });
 
-      const variantAdapter = adapter!.variant((result) => ({
+      const variantAdapter = adapter.variant((result) => ({
         theme: result.variantKey,
         style: result.attachment ? JSON.parse(result.attachment).style : 'default',
       }));
@@ -261,7 +267,7 @@ describe('createFliptAdapter', () => {
           email: 'user@example.com',
         },
         headers: {} as any,
-        cookies: {} as any
+        cookies: {} as any,
       });
 
       expect(result).toEqual({
@@ -362,7 +368,7 @@ describe('createFliptAdapter', () => {
       server.use(
         http.get('http://localhost:8080/internal/v1/evaluation/snapshot/namespace/default', () => {
           return new HttpResponse(null, { status: 500 });
-        })
+        }),
       );
 
       const data = await getProviderData({
@@ -379,4 +385,4 @@ describe('createFliptAdapter', () => {
       });
     });
   });
-}); 
+});

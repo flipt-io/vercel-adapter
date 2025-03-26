@@ -1,6 +1,6 @@
-import type { Adapter } from 'flags';
 import { FliptEvaluationClient } from '@flipt-io/flipt-client';
-import type { FlagDefinitionsType, JsonValue, ProviderData } from 'flags';
+
+import type { Adapter, FlagDefinitionsType, JsonValue, ProviderData } from 'flags';
 
 interface FliptFlag {
   key: string;
@@ -23,7 +23,7 @@ type FliptUser = {
 
 type AdapterFunction<O> = <T>(
   getValue: (obj: O) => T,
-  opts?: { exposureLogging?: boolean }
+  opts?: { exposureLogging?: boolean },
 ) => Adapter<T, FliptUser>;
 
 export type AdapterResponse = {
@@ -79,11 +79,7 @@ export function createFliptAdapter(options?: FliptConfig): AdapterResponse {
       decide: async ({ key, entities }: { key: string; entities?: FliptUser }) => {
         const user = await predecide(entities);
         const client = await getClient();
-        const result = client.evaluateBoolean(
-          key,
-          user.id,
-          transformContext(user)
-        );
+        const result = client.evaluateBoolean(key, user.id, transformContext(user));
         return getValue(result);
       },
     };
@@ -97,11 +93,7 @@ export function createFliptAdapter(options?: FliptConfig): AdapterResponse {
       decide: async ({ key, entities }: { key: string; entities?: FliptUser }) => {
         const user = await predecide(entities);
         const client = await getClient();
-        const result = client.evaluateVariant(
-          key,
-          user.id,
-          transformContext(user)
-        );
+        const result = client.evaluateVariant(key, user.id, transformContext(user));
         return getValue({
           variantKey: result.variantKey,
           attachment: result.variantAttachment ?? undefined,
@@ -119,7 +111,7 @@ export function createFliptAdapter(options?: FliptConfig): AdapterResponse {
 
 function transformContext(user: FliptUser): Record<string, string> {
   const context: Record<string, string> = {};
-  
+
   Object.entries(user).forEach(([key, value]) => {
     if (key !== 'id') {
       context[key] = String(value);
@@ -159,16 +151,16 @@ export async function getProviderData(options?: FliptConfig): Promise<ProviderDa
 
   try {
     const client = await initialize(options);
-    const flags = (client.listFlags()) as FliptFlag[];
+    const flags = client.listFlags() as FliptFlag[];
 
     return {
       definitions: flags.reduce<FlagDefinitionsType>((acc, flag) => {
         acc[flag.key] = {
           origin: `${options?.url ?? process.env.FLIPT_URL}/flags/${flag.key}`,
           options: [
-              { value: true, label: 'Enabled' },
-              { value: false, label: 'Disabled' }
-            ],
+            { value: true, label: 'Enabled' },
+            { value: false, label: 'Disabled' },
+          ],
         };
         return acc;
       }, {}),
@@ -185,4 +177,4 @@ export async function getProviderData(options?: FliptConfig): Promise<ProviderDa
       ],
     };
   }
-} 
+}
