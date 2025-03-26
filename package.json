@@ -60,6 +60,6 @@
     "feature-flags",
     "feature-toggles"
   ],
-  "author": "",
+  "author": "dev@flipt.io",
   "license": "MIT"
 }
