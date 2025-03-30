@@ -11,4 +11,4 @@ export default defineConfig({
   skipNodeModulesBundle: true,
   dts: true,
   external: ['node_modules'],
-}); 
+});

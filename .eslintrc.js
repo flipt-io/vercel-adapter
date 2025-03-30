@@ -23,22 +23,13 @@ module.exports = {
     'import/order': [
       'error',
       {
-        'groups': [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index',
-          'object',
-          'type'
-        ],
+        groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'type'],
         'newlines-between': 'always',
-        'alphabetize': {
-          'order': 'asc',
-          'caseInsensitive': true
-        }
-      }
+        alphabetize: {
+          order: 'asc',
+          caseInsensitive: true,
+        },
+      },
     ],
     'prettier/prettier': 'error',
   },
@@ -56,4 +47,4 @@ module.exports = {
     browser: true,
     es2020: true,
   },
-}; 
+};
