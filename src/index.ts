@@ -6,6 +6,7 @@ interface FliptFlag {
   key: string;
   enabled: boolean;
   type: 'BOOLEAN_FLAG_TYPE' | 'VARIANT_FLAG_TYPE';
+  description?: string;
 }
 
 export interface FliptConfig {
@@ -45,7 +46,9 @@ const initialize = async (options?: FliptConfig): Promise<FliptClient> => {
     },
   };
 
-  return await FliptClient.init({ ...config });
+  // set global client for reuse
+  client = await FliptClient.init({ ...config });
+  return client;
 };
 
 const isFliptContext = (context: unknown): context is EvaluationContext => {
@@ -154,12 +157,14 @@ export async function getProviderData(options?: FliptConfig): Promise<ProviderDa
 
   try {
     const client = await initialize(options);
+    const namespace = options?.namespace ?? 'default';
     const flags = client.listFlags() as FliptFlag[];
 
     return {
       definitions: flags.reduce<FlagDefinitionsType>((acc, flag) => {
         acc[flag.key] = {
-          origin: `${options?.url ?? process.env.FLIPT_URL}/flags/${flag.key}`,
+          description: flag.description,
+          origin: `${options?.url ?? process.env.FLIPT_URL}/namespaces/${namespace}/flags/${flag.key}`,
           options: [
             { value: true, label: 'Enabled' },
             { value: false, label: 'Disabled' },

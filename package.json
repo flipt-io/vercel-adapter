@@ -28,7 +28,6 @@
     "fmt:check": "prettier --check \"**/*.{ts,tsx,md,json}\""
   },
   "dependencies": {
-    "@flipt-io/flipt-client-js": "^0.0.1",
     "flags": "^3.2.0"
   },
   "devDependencies": {
