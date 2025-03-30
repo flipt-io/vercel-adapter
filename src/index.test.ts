@@ -134,7 +134,7 @@ describe('createFliptAdapter', () => {
       expect(result).toBe(true);
     });
 
-    it('should throw error when user is missing', async () => {
+    it('should throw error when context is missing', async () => {
       const booleanAdapter = adapter!.boolean((result) => result.enabled);
 
       await expect(
@@ -143,10 +143,10 @@ describe('createFliptAdapter', () => {
           headers: {} as any,
           cookies: {} as any,
         }),
-      ).rejects.toThrow('vercel-flipt-adapter: Invalid or missing user from identify');
+      ).rejects.toThrow('vercel-flipt-adapter: Invalid or missing context from identify');
     });
 
-    it('should throw error when user has no id', async () => {
+    it('should throw error when context has no id', async () => {
       const booleanAdapter = adapter!.boolean((result) => result.enabled);
 
       await expect(
@@ -158,7 +158,7 @@ describe('createFliptAdapter', () => {
           headers: {} as any,
           cookies: {} as any,
         }),
-      ).rejects.toThrow('vercel-flipt-adapter: Invalid or missing user from identify');
+      ).rejects.toThrow('vercel-flipt-adapter: Invalid or missing context from identify');
     });
   });
 
@@ -186,7 +186,7 @@ describe('createFliptAdapter', () => {
       });
     });
 
-    it('should throw error when user is missing', async () => {
+    it('should throw error when context is missing', async () => {
       const variantAdapter = adapter!.variant((result) => result.variantKey);
 
       await expect(
@@ -195,7 +195,7 @@ describe('createFliptAdapter', () => {
           headers: {} as any,
           cookies: {} as any,
         }),
-      ).rejects.toThrow('vercel-flipt-adapter: Invalid or missing user from identify');
+      ).rejects.toThrow('vercel-flipt-adapter: Invalid or missing context from identify');
     });
 
     it('should handle missing variant attachment', async () => {

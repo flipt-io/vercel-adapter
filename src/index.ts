@@ -1,4 +1,4 @@
-import { FliptEvaluationClient } from '@flipt-io/flipt-client';
+import { FliptClient } from '@flipt-io/flipt-client-js';
 
 import type { Adapter, FlagDefinitionsType, ProviderData } from 'flags';
 
@@ -16,7 +16,7 @@ export interface FliptConfig {
   };
 }
 
-type FliptUser = {
+export type EvaluationContext = {
   id: string;
   [key: string]: unknown;
 };
@@ -24,17 +24,17 @@ type FliptUser = {
 type AdapterFunction<O> = <T>(
   getValue: (obj: O) => T,
   opts?: object | undefined,
-) => Adapter<T, FliptUser>;
+) => Adapter<T, EvaluationContext>;
 
 export type AdapterResponse = {
   boolean: AdapterFunction<{ enabled: boolean }>;
   variant: AdapterFunction<{ variantKey: string; attachment?: string }>;
-  initialize: () => Promise<FliptEvaluationClient>;
+  initialize: () => Promise<FliptClient>;
 };
 
-let client: FliptEvaluationClient | null = null;
+let client: FliptClient | null = null;
 
-const initialize = async (options?: FliptConfig): Promise<FliptEvaluationClient> => {
+const initialize = async (options?: FliptConfig): Promise<FliptClient> => {
   if (client) return client;
 
   const config = {
@@ -45,41 +45,40 @@ const initialize = async (options?: FliptConfig): Promise<FliptEvaluationClient>
     },
   };
 
-  client = await FliptEvaluationClient.init(config.namespace, {
-    url: config.url,
-    authentication: config.authentication,
-  });
-
-  return client;
+  return await FliptClient.init({ ...config });
 };
 
-const isFliptUser = (user: unknown): user is FliptUser => {
-  return user != null && typeof user === 'object' && 'id' in user;
+const isFliptContext = (context: unknown): context is EvaluationContext => {
+  return context != null && typeof context === 'object' && 'id' in context;
 };
 
-async function predecide(user?: FliptUser): Promise<FliptUser> {
-  if (!isFliptUser(user)) {
+async function predecide(context?: EvaluationContext): Promise<EvaluationContext> {
+  if (!isFliptContext(context)) {
     throw new Error(
-      'vercel-flipt-adapter: Invalid or missing user from identify. See https://flags-sdk.dev/concepts/identify',
+      'vercel-flipt-adapter: Invalid or missing context from identify. See https://flags-sdk.dev/concepts/identify',
     );
   }
-  return await Promise.resolve(user);
+  return await Promise.resolve(context);
 }
 
 export function createFliptAdapter(options?: FliptConfig): AdapterResponse {
-  async function getClient(): Promise<FliptEvaluationClient> {
+  async function getClient(): Promise<FliptClient> {
     return initialize(options);
   }
 
   function boolean<T>(
     getValue: (result: { enabled: boolean }) => T,
     _opts?: object | undefined,
-  ): Adapter<T, FliptUser> {
+  ): Adapter<T, EvaluationContext> {
     return {
-      decide: async ({ key, entities }: { key: string; entities?: FliptUser }) => {
-        const user = await predecide(entities);
+      decide: async ({ key, entities }: { key: string; entities?: EvaluationContext }) => {
+        const context = await predecide(entities);
         const client = await getClient();
-        const result = client.evaluateBoolean(key, user.id, transformContext(user));
+        const result = client.evaluateBoolean({
+          flagKey: key,
+          entityId: context.id,
+          context: transformContext(context),
+        });
         return getValue(result);
       },
     };
@@ -88,12 +87,16 @@ export function createFliptAdapter(options?: FliptConfig): AdapterResponse {
   function variant<T>(
     getValue: (result: { variantKey: string; attachment?: string }) => T,
     _opts?: object | undefined,
-  ): Adapter<T, FliptUser> {
+  ): Adapter<T, EvaluationContext> {
     return {
-      decide: async ({ key, entities }: { key: string; entities?: FliptUser }) => {
-        const user = await predecide(entities);
+      decide: async ({ key, entities }: { key: string; entities?: EvaluationContext }) => {
+        const context = await predecide(entities);
         const client = await getClient();
-        const result = client.evaluateVariant(key, user.id, transformContext(user));
+        const result = client.evaluateVariant({
+          flagKey: key,
+          entityId: context.id,
+          context: transformContext(context),
+        });
         return getValue({
           variantKey: result.variantKey,
           attachment: result.variantAttachment ?? undefined,
@@ -109,16 +112,16 @@ export function createFliptAdapter(options?: FliptConfig): AdapterResponse {
   };
 }
 
-function transformContext(user: FliptUser): Record<string, string> {
-  const context: Record<string, string> = {};
+function transformContext(context: EvaluationContext): Record<string, string> {
+  const transformedContext: Record<string, string> = {};
 
-  Object.entries(user).forEach(([key, value]) => {
+  Object.entries(context).forEach(([key, value]) => {
     if (key !== 'id') {
-      context[key] = String(value);
+      transformedContext[key] = String(value);
     }
   });
 
-  return context;
+  return transformedContext;
 }
 
 export const fliptAdapter = createFliptAdapter();

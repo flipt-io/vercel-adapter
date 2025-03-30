@@ -24,11 +24,11 @@
     "test:watch": "vitest run --coverage",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,md,json}\""
+    "fmt": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "fmt:check": "prettier --check \"**/*.{ts,tsx,md,json}\""
   },
   "dependencies": {
-    "@flipt-io/flipt-client": "^0.13.0",
+    "@flipt-io/flipt-client-js": "^0.0.1",
     "flags": "^3.2.0"
   },
   "devDependencies": {
@@ -52,7 +52,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "keywords": [
     "vercel",
