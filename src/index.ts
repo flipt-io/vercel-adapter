@@ -37,7 +37,10 @@ export type AdapterResponse = {
 let client: FliptClient | null = null;
 
 const initialize = async (options?: FliptConfig): Promise<FliptClient> => {
-  if (client) return client;
+  if (client) {
+    await client.refresh();
+    return client;
+  }
 
   const config = {
     url: options?.url ?? process.env.FLIPT_URL ?? 'http://localhost:8080',
