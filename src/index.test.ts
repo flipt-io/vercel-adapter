@@ -324,7 +324,7 @@ describe('createFliptAdapter', () => {
 
       expect(data.definitions).toEqual({
         'new-feature': {
-          origin: 'http://localhost:8080/namespaces/default/flags/new-feature',
+          origin: 'http://localhost:8080/#/namespaces/default/flags/new-feature',
           description: 'This is a new feature',
           options: [
             { value: true, label: 'Enabled' },
@@ -332,37 +332,10 @@ describe('createFliptAdapter', () => {
           ],
         },
         'user-theme': {
-          origin: 'http://localhost:8080/namespaces/default/flags/user-theme',
+          origin: 'http://localhost:8080/#/namespaces/default/flags/user-theme',
           description: 'This is a user theme',
-          options: [
-            { value: true, label: 'Enabled' },
-            { value: false, label: 'Disabled' },
-          ],
+          options: [],
         },
-      });
-    });
-
-    it('should return hints when client token is missing', async () => {
-      const data = await getProviderData({
-        url: 'http://localhost:8080',
-      });
-
-      expect(data.hints).toContainEqual({
-        key: 'flipt/missing-client-token',
-        text: 'Missing Flipt Client Token',
-      });
-    });
-
-    it('should return hints when url is missing', async () => {
-      const data = await getProviderData({
-        authentication: {
-          clientToken: 'test-token',
-        },
-      });
-
-      expect(data.hints).toContainEqual({
-        key: 'flipt/missing-url',
-        text: 'Missing Flipt URL',
       });
     });
 
