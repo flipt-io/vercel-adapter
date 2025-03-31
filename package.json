@@ -1,6 +1,6 @@
 {
   "name": "@flipt-io/vercel-adapter",
-  "version": "0.0.1",
+  "version": "0.0.1-rc.1",
   "description": "Vercel Flags adapter for Flipt",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
@@ -28,6 +28,7 @@
     "fmt:check": "prettier --check \"**/*.{ts,tsx,md,json}\""
   },
   "dependencies": {
+    "@flipt-io/flipt-client-js": "^0.0.1",
     "flags": "^3.2.0"
   },
   "devDependencies": {
