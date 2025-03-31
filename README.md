@@ -1,6 +1,6 @@
 # Vercel Flags Adapter for Flipt
 
-A Vercel Flags adapter for [Flipt](https://flipt.io).
+A Vercel [Flags SDK](https://flags-sdk.dev/) adapter for [Flipt](https://flipt.io).
 
 ## Installation
 
