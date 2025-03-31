@@ -63,5 +63,9 @@
     "feature-toggles"
   ],
   "author": "dev@flipt.io",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flipt-io/vercel-adapter.git"
+  }
 }
