@@ -2,6 +2,8 @@
 
 A Vercel [Flags SDK](https://flags-sdk.dev/) adapter for [Flipt](https://flipt.io).
 
+[![@flipt-io/vercel-adapter](https://img.shields.io/npm/v/@flipt-io/vercel-adapter?label=%40flipt-io%2Fvercel-adapter)](https://www.npmjs.com/package/@flipt-io/vercel-adapter)
+
 ## Installation
 
 ```bash
@@ -11,11 +13,11 @@ npm install @flipt-io/vercel-adapter
 ## Prerequisites
 
 - A Flipt instance ([self-hosted](https://docs.flipt.io/installation/overview) or [Flipt Cloud](https://docs.flipt.io/cloud/overview))
-- A Vercel project
+- A Vercel project with the [Flags SDK](https://flags-sdk.dev/) installed
 
 ## Usage
 
-### Basic Setup
+### Basic Initialization
 
 ```typescript
 import { createFliptAdapter } from '@flipt-io/vercel-adapter';
@@ -26,7 +28,7 @@ const adapter = createFliptAdapter({
 });
 ```
 
-### Flipt Cloud Setup
+### Flipt Cloud Initialization
 
 ```typescript
 import { createFliptAdapter } from '@flipt-io/vercel-adapter';
@@ -49,9 +51,6 @@ import { createFliptAdapter } from '@flipt-io/vercel-adapter';
 const adapter = createFliptAdapter({
   url: process.env.FLIPT_URL,
   namespace: process.env.FLIPT_NAMESPACE,
-  authentication: {
-    clientToken: process.env.FLIPT_CLIENT_TOKEN ?? '',
-  },
 });
 
 // Example identify function that gets the current user
