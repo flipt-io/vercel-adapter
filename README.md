@@ -1,12 +1,17 @@
 # Vercel Flags Adapter for Flipt
 
-A Vercel Flags adapter for [Flipt](https://flipt.io).
+A Vercel [Flags SDK](https://flags-sdk.dev/) adapter for [Flipt](https://flipt.io).
 
 ## Installation
 
 ```bash
 npm install @flipt-io/vercel-adapter
 ```
+
+## Prerequisites
+
+- A Flipt instance ([self-hosted](https://docs.flipt.io/installation/overview) or [Flipt Cloud](https://docs.flipt.io/cloud/overview))
+- A Vercel project
 
 ## Usage
 
@@ -18,8 +23,19 @@ import { createFliptAdapter } from '@flipt-io/vercel-adapter';
 const adapter = createFliptAdapter({
   url: process.env.FLIPT_URL,
   namespace: process.env.FLIPT_NAMESPACE,
+});
+```
+
+### Flipt Cloud Setup
+
+```typescript
+import { createFliptAdapter } from '@flipt-io/vercel-adapter';
+
+const adapter = createFliptAdapter({
+  url: process.env.FLIPT_URL, // Your Flipt Cloud instance URL (e.g. https://{your-flipt-cloud-instance}.flipt.cloud)
+  namespace: process.env.FLIPT_NAMESPACE, // Optional, defaults to `default`
   authentication: {
-    clientToken: process.env.FLIPT_CLIENT_TOKEN,
+    clientToken: process.env.FLIPT_CLIENT_TOKEN, // Your Flipt Cloud API key
   },
 });
 ```
@@ -85,6 +101,7 @@ The adapter accepts the following configuration options:
 
 - `url`: The URL of your Flipt instance (defaults to `http://localhost:8080`)
 - `namespace`: The namespace to use for flag evaluation (defaults to `default`)
+- `updateInterval`: The interval (in seconds) to check for flag changes (defaults to 5 seconds in development)
 - `authentication`: Authentication configuration
   - `clientToken`: The client token to use for authentication
 

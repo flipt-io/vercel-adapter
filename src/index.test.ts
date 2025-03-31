@@ -8,7 +8,7 @@ const defaultFlags = [
   {
     key: 'new-feature',
     name: 'new-feature',
-    description: '',
+    description: 'This is a new feature',
     enabled: true,
     type: 'BOOLEAN_FLAG_TYPE',
     createdAt: '2024-03-25T20:44:58.462Z',
@@ -19,7 +19,7 @@ const defaultFlags = [
   {
     key: 'user-theme',
     name: 'user-theme',
-    description: '',
+    description: 'This is a user theme',
     enabled: true,
     type: 'VARIANT_FLAG_TYPE',
     createdAt: '2024-03-25T20:44:58.462Z',
@@ -55,7 +55,7 @@ const testFlags = [
   {
     key: 'test-feature',
     name: 'test-feature',
-    description: '',
+    description: 'This is a test feature',
     enabled: true,
     type: 'BOOLEAN_FLAG_TYPE',
     createdAt: '2024-03-25T20:44:58.462Z',
@@ -324,43 +324,18 @@ describe('createFliptAdapter', () => {
 
       expect(data.definitions).toEqual({
         'new-feature': {
-          origin: 'http://localhost:8080/flags/new-feature',
+          origin: 'http://localhost:8080/#/namespaces/default/flags/new-feature',
+          description: 'This is a new feature',
           options: [
             { value: true, label: 'Enabled' },
             { value: false, label: 'Disabled' },
           ],
         },
         'user-theme': {
-          origin: 'http://localhost:8080/flags/user-theme',
-          options: [
-            { value: true, label: 'Enabled' },
-            { value: false, label: 'Disabled' },
-          ],
+          origin: 'http://localhost:8080/#/namespaces/default/flags/user-theme',
+          description: 'This is a user theme',
+          options: [],
         },
-      });
-    });
-
-    it('should return hints when client token is missing', async () => {
-      const data = await getProviderData({
-        url: 'http://localhost:8080',
-      });
-
-      expect(data.hints).toContainEqual({
-        key: 'flipt/missing-client-token',
-        text: 'Missing Flipt Client Token',
-      });
-    });
-
-    it('should return hints when url is missing', async () => {
-      const data = await getProviderData({
-        authentication: {
-          clientToken: 'test-token',
-        },
-      });
-
-      expect(data.hints).toContainEqual({
-        key: 'flipt/missing-url',
-        text: 'Missing Flipt URL',
       });
     });
 

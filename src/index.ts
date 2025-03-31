@@ -6,6 +6,7 @@ interface FliptFlag {
   key: string;
   enabled: boolean;
   type: 'BOOLEAN_FLAG_TYPE' | 'VARIANT_FLAG_TYPE';
+  description?: string;
 }
 
 export interface FliptConfig {
@@ -14,6 +15,7 @@ export interface FliptConfig {
   authentication?: {
     clientToken: string;
   };
+  updateInterval?: number;
 }
 
 export type EvaluationContext = {
@@ -43,9 +45,13 @@ const initialize = async (options?: FliptConfig): Promise<FliptClient> => {
     authentication: options?.authentication ?? {
       clientToken: process.env.FLIPT_CLIENT_TOKEN ?? '',
     },
+    updateInterval:
+      options?.updateInterval ?? (process.env.NODE_ENV === 'development' ? 5 : undefined), // 5 seconds in development if not set
   };
 
-  return await FliptClient.init({ ...config });
+  // set global client for reuse
+  client = await FliptClient.init({ ...config });
+  return client;
 };
 
 const isFliptContext = (context: unknown): context is EvaluationContext => {
@@ -134,36 +140,33 @@ export function __resetClientForTesting(): void {
 export async function getProviderData(options?: FliptConfig): Promise<ProviderData> {
   const hints: Exclude<ProviderData['hints'], undefined> = [];
 
-  if (!options?.authentication?.clientToken && !process.env.FLIPT_CLIENT_TOKEN) {
-    hints.push({
-      key: 'flipt/missing-client-token',
-      text: 'Missing Flipt Client Token',
-    });
-  }
-
-  if (!options?.url && !process.env.FLIPT_URL) {
-    hints.push({
-      key: 'flipt/missing-url',
-      text: 'Missing Flipt URL',
-    });
-  }
-
   if (hints.length > 0) {
     return { definitions: {}, hints };
   }
 
   try {
     const client = await initialize(options);
+    const namespace = options?.namespace ?? 'default';
     const flags = client.listFlags() as FliptFlag[];
+    const baseUrl = (options?.url ?? process.env.FLIPT_URL ?? 'http://localhost:8080').replace(
+      /\/+$/,
+      '',
+    );
 
     return {
       definitions: flags.reduce<FlagDefinitionsType>((acc, flag) => {
+        const options =
+          flag.type === 'BOOLEAN_FLAG_TYPE'
+            ? [
+                { value: true, label: 'Enabled' },
+                { value: false, label: 'Disabled' },
+              ]
+            : []; // TODO: return variant options once they are returned by Flipt SDK
+
         acc[flag.key] = {
-          origin: `${options?.url ?? process.env.FLIPT_URL}/flags/${flag.key}`,
-          options: [
-            { value: true, label: 'Enabled' },
-            { value: false, label: 'Disabled' },
-          ],
+          description: flag.description,
+          origin: `${baseUrl}/#/namespaces/${namespace}/flags/${flag.key}`,
+          options,
         };
         return acc;
       }, {}),
