@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@flipt-io/flipt-client-js": "^0.0.2",
-    "flags": "^3.2.0"
+    "flags": "^4.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -48,7 +48,7 @@
     "vitest": "^1.0.0"
   },
   "peerDependencies": {
-    "flags": "^3.2.0"
+    "flags": "^4.0.0"
   },
   "files": [
     "dist",
